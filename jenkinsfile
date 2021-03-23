@@ -9,7 +9,8 @@
       options {
           buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
             }
-            
+      
+      #sample environment variables, please change it according to your setup
       environment {
           JOB_NAME='test1-pipeline'
           GIT_URL='https://github.com/athiraRaj2019/SimpleMavenJunitWebApp.git'
