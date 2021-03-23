@@ -1,0 +1,44 @@
+Project name: My First Project
+Project ID: 
+Project no:
+
+GCP VM creation
+*******************
+
+GCP Console—>compute engine
+Create instance—>name, select region/default, machine type 2vCPUs, Boot disk-centOS7,firewall allow http, https—>create
+Click nic0—>check for firewalls—>firewall rules—>create firewall rule—>name,targets—>all/specified target tags, sources ip range—>0.0.0.0/0, specify ports eg: tcp:8080—.create
+
+Go back to vm instance page—>click on instance name—>edit—>Network tags—>add names of newly created firewall rules—>save
+
+Goto vm page—>dropdown ssh—>view cloud command—>copy the command—>click open in shell—>terminal should open up
+Paste the copied cmd on to terminal and enter you will b logged into the VM now
+
+To ssh into one vm from another
+***********************************
+run below cmd in the source from which we are trying to ssh 
+gcloud auth login 
+Enter y
+Go to the provided link and copy the verification code
+Tcp compute is used in tcp vm for ssh
+Then ssh to host using cmd from 
+gcp console—>vm—>ssh dropdown—>view gcloud cmd—>copy and run in source terminal
+
+To make ip fixed:
+*********************
+Every time you turn on GCP instance its IP changes so each time you need to configure the ip as follows:
+To make IP Static—>i.e ip remains same always
+Goto external ip page of GCP—>Go to the External IP addresses page
+Choose the vm—>type drop down set to static here for Sonarqube http://35.243.241.129:9000/
+
+To establish ssh connection between two GCP hosts via Jenkins user:
+*********************************************************************
+In Jenkins instance
+Adduser Jenkins
+Sudo su - jenkins
+Ssh-keygen
+Cd .ssh
+Sudo vi id_rsa.pub—>copy the key
+
+goto tcp console—>metadata—>ssh keys—>edit—> paste the key in box remove all spaces it should be in the format ssh-was <key> <username>—> if spaces are correct automatically user jenkins will appear under username. EG.
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8c+IMjmA+rHl51VYdHaQgBU80D0FraXG7x+7gXUCTJ9tiFpPm4kVjDb9L5nhaEIFbfQQX74vVSuOyEKZtcJDpgYSaM4hTDxLHhxd7RvSMQNvi7PXTNP8h25StLqH0bOAsWNHHg7lY4wceUEuoT20bwm1rlPmnpjOoR4NncPAz4MOPtjA77+hOObj3oslPKvsdloNf5QlJLMbdu9CqImsm+gGPUrXL1JpDR8ERhQSKUmb+MBoZZXPoC89tBApaPu0CO0tTlLX4Bss4Dpf24yEGJx41oi383OSphWexgdHwgeLRv+gTGl62oUO7gILAVAFnja7pLGxXBFq3C/fpR jenkins@instance-1-jenksonar

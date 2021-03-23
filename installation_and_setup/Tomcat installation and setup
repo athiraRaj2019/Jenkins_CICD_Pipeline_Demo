@@ -1,0 +1,143 @@
+Tomcat installation
+************************
+Create a new GCP VM here instance-3-tomcat
+Login to vm
+sudo yum install java-1.8.0-openjdk-devel
+sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat
+cd /tmp
+wget https://www-eu.apache.org/dist/tomcat/tomcat-9/v9.0.14/bin/apache-tomcat-9.0.14.tar.gz
+tar -xf apache-tomcat-9.0.14.tar.gz	
+sudo mv apache-tomcat-9.0.14 /opt/tomcat/
+sudo ln -s /opt/tomcat/apache-tomcat-9.0.14 /opt/tomcat/latest	
+sudo sh -c 'chmod +x /opt/tomcat/latest/bin/*.sh'		
+
+To create a systemd file for tomcat as a service
+# note here we use user and group as jenkins because we need To establish connection between Jenkins instance and 
+tomcat instance, its easy to connect as same user.As jenkins is already started as jenkins user we will start tomcat 
+also as jenkins user.see https://github.com/athiraRaj2019/Documentations/blob/master/poc-pipeline/GCP%20VM%20creation
+for ssh connection between two hosts.
+
+sudo vi /etc/systemd/system/tomcat.service
+Copy paste the following to tomcat.service
+[Unit]
+Description=Tomcat 9 servlet container
+After=network.target
+
+[Service]
+Type=forking
+
+User=jenkins
+Group=jenkins
+
+Environment="JAVA_HOME=/usr/lib/jvm/jre"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom"
+
+Environment="CATALINA_BASE=/opt/tomcat/latest"
+Environment="CATALINA_HOME=/opt/tomcat/latest"
+Environment="CATALINA_PID=/opt/tomcat/latest/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart=/opt/tomcat/latest/bin/startup.sh
+ExecStop=/opt/tomcat/latest/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl enable tomcat
+sudo systemctl start tomcat
+sudo systemctl status tomcat
+
+To adjust the firewall(not mandatory)
+sudo firewall-cmd --zone=public --permanent --add-port=8080/tcp
+sudo firewall-cmd --reload
+
+Tomcat configurations:
+****************************
+Will be abele to access tomcat at http://<ip>:8080 but we won’t be able to access web management interface so need to
+create a user login
+sudo vi /opt/tomcat/latest/conf/tomcat-users.xml
+Copy paste the following to omcat-users.xml
+<tomcat-users>
+<!--
+    Comments
+-->
+   <role rolename="admin-gui"/>
+   <role rolename="manager-gui"/>
+   <user username="admin" password="admin" roles="admin-gui,manager-gui"/>
+</tomcat-users>
+
+Sudo vi /opt/tomcat/latest/webapps/manager/META-INF/context.xml
+Uncomment the highlighted lines 
+<Context antiResourceLocking="false" privileged="true" >
+<!--
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0000:1" />
+-->
+</Context>
+Sudo vi /opt/tomcat/latest/webapps/host-manager/META-INF/context.xml
+<!--
+  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0000:1" />
+-->
+sudo systemctl restart tomcat
+
+TO CHANGE PORT (not needed if you are running jenkins and tomcat in two different servers)
+*****************
+ To change the port to 9999 from default (8080): 
+vi /opt/tomcat/apache-tomcat-8.5.40/conf/server.xml --> <Connector port="9999" protocol="HTTP/1.1"
+
+TO START TOMCAT:
+*************************
+Start the GCP VM
+Goto browser:http://<ip>:8080
+Tomcat should be up and running if above installation steps are run
+Else follow any of the below methods
+
+Manual:
+opt/tomcat/latest/bin/startup.sh
+/opt/tomcat/latest/bin/shutdown.sh
+
+Service cmd:
+sudo systemctl start tomcat
+sudo systemctl stop tomcat
+sudo systemctl status tomcat
+sudo systemctl restart tomcat
+
+Passwordless authentication
+**********************************
+https://www.digitalocean.com/community/tutorials/how-to-use-ssh-to-connect-to-a-remote-server-in-ubuntu#how-to-log-into-ssh-with-keys
+In jenkins server
+adduser jenkins
+sudo su - jenkins
+ssh-keygen
+Give the default path
+cd .ssh
+sudo vi rsa_key.pub
+Copy the key
+Login to tomcat server as user jenkins
+sudo su - jenkins
+cd .ssh
+Sudo vi autherized_key
+Paste the key
+
+also copy paste the public key in GCP-->metadata ,refer the GCP VM creation for steps
+
+Login to jenkins server(make sure the above steps are already done else you may get logged out permanently)
+sudo vi /etc/ssh/sshd_config
+Uncomment and set
+PasswordAuthentication no
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+)
+Once done, in jenkins server do
+sudo su - jenkins
+ssh <tomacthostname>
+or ssh<ip>
+It will enter to tomcat server 
+
+Reference:
+**************
+https://linuxize.com/post/how-to-install-tomcat-9-on-centos-7/
+https://stackoverflow.com/questions/18415578/how-to-change-tomcat-port-number
+

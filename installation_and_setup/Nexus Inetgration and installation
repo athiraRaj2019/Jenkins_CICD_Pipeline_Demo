@@ -1,0 +1,98 @@
+Java 
+
+References:
+https://rafishaikblog.wordpress.com/2018/01/10/installing-nexus-in-centos7/
+
+NEXUS INSTALLATION IN CENTOS7
+*****************************
+
+wget http://download.sonatype.com/nexus/3/latest-unix.tar.gz
+tar xvf latest-unix.tar.gz -C /opt
+cd ..
+ls --> bin deploy etc lib LICENSE.txt NOTICE.txt public system
+Open /app/nexus/bin/nexus.rc file, uncomment run_as_user parameter and set it as : run_as_user="nexus"
+./bin/nexus start
+netstat -tln --> tcp 0 0 0.0.0.0:8081 0.0.0.0:* LISTEN
+ln -s /opt/nexus-3.16.1-02/bin/nexus /etc/init.d/nexus]
+service nexus status --> nexus is running.
+
+* Set the firewall rule in GCP to allow tcp:8081 and add it to the VM instance.
+
+http://<IP of VM>:8081 --> Home page of nexus
+
+TO START NEXUS 
+******************
+
+Start the GCP VM
+Ssh drop down-->view cloud command-->copy the command-->run in cloud shell-->paste the cmd and enter-->you will be logged in to the vm
+sudo su -
+cd /opt/nexus-3.16.1-02/bin
+./nexus start
+O/p will be:WARNING: ************************************************************
+WARNING: Detected execution as "root" user.  This is NOT recommended!
+WARNING: ************************************************************
+Starting nexus
+
+./nexus status
+[root@instance-2 bin]# ./nexus status
+WARNING: ************************************************************
+WARNING: Detected execution as "root" user.  This is NOT recommended!
+WARNING: ************************************************************
+nexus is running.
+Wait for 2-3 mins then run the command netstat -tlnt to see port 8081, even if port not found goto browser http://<ip>:8081
+root@instance-2 bin]# netstat -tlnt
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+tcp        0      0 127.0.0.1:43178         0.0.0.0:*               LISTEN
+tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN
+tcp6       0      0 :::22                   :::*                    LISTEN
+tcp6       0      0 ::1:25                  :::*                    LISTEN
+
+goto browser http://<ip>:8081 -->nexus should be up and running
+Login: user:admin, psd:admin123
+
+JENKINS-NEXUS INTEGRATION
+********************************
+
+Login to nexus with user:admin psd:admin123
+Click on the settings symbol-->repository-->create repository-->maven2(hosted)
+Under version policy change snapshot for snap repo and release for release repo.
+Copy paste the repo links under distribution management in pom.xml(refer basic pom.xml for nexus in internet )
+<groupId></groupId>
+  <artifactId></artifactId>
+  <packaging></packaging>
+  <version></version>
+  
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <url><NEXUS RELEASE REPO URL></url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <url><NEXUS SNAPSHOT REPO URL></url>
+    </snapshotRepository>
+  </distributionManagement>
+  
+Goto jenkins-->new maven job-->maven build-->provide deploy eg: clean package deploy
+Goto jenkins vm as root
+Vim /etc/maven/settings.xml
+Edit the following line
+<server>
+      <id>deployment</id>
+      <username>admin</username>
+      <password>admin123</password>
+ </server>
+
+Build the job check in the snap/release repo for artefact uploads.
+
+can also implement jenkins-nexus integration via plugin:
+************************************************************
+Install plugin: Nexus Platform Plugin
+Manage Jenkins --> Configure System --> Sonatype Nexus --> Display name (mynexus), Server ID (mynexus), Server URL (http://localhost:8081), Credentials
+
+jenkins-Nexus integration using pipeline script
+***************************************************
+refer jenkinsfile in https://github.com/athiraRaj2019/Documentations/blob/master/poc-pipeline/jenkinsfile

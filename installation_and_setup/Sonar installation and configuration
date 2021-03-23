@@ -1,0 +1,150 @@
+Sonarqube installations
+GCP instance details:centOS7
+
+Firewall set: tcp:9000
+
+Sonarqube Host:
+Username:sonarqube
+Psd:admin123
+
+In sonar UI
+Username:admin
+Psd:admin
+
+http://<ip>:9000
+
+Login to Sonarqube
+User:admin
+Psd:admin
+
+
+Sonar installation
+************************
+yum install wget unzip -y
+yum install java-1.8.0-openjdk-devel.x86_64
+java -version	
+
+Install and configure MySQL database
+wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+rpm -ivh mysql-community-release-el7-5.noarch.rpm
+yum install mysql-server -y
+systemctl start mysqld
+mysql_secure_installation		
+Mysql -u root -p
+MariaDB [(none)]>CREATE DATABASE sonarqube_db;
+MariaDB [(none)]>CREATE USER 'sonarqube_user’@‘localhost' IDENTIFIED BY ‘password’;
+MariaDB [(none)]>GRANT ALL PRIVILEGES ON sonarqube_db.* TO 'sonarqube_user’@‘localhost' IDENTIFIED BY 'password';
+MariaDB [(none)]>FLUSH PRIVILEGES;
+MariaDB [(none)]>exit
+replace sonarqube_user,sonarqube_dp,password with our details.
+
+Create a new user for sonarqube
+useradd sonarqube
+Download and install sonarqube
+wget https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-6.7.5.zip	
+unzip sonarqube-6.7.5.zip
+mv sonarqube-6.7.5 /opt/sonarqube
+chown sonarqube. /opt/sonarqube -R
+vi /opt/sonarqube/conf/sonar.properties
+sonar.jdbc.username=sonarqube_user
+sonar.jdbc.password=password
+sonar.jdbc.url=jdbc:mysql://localhost:3306/sonarqube_db?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance
+vi /opt/sonarqube/bin/linux-x86-64/sonar.sh
+RUN_AS_USER=sonarqube
+/opt/sonar/bin/linux-x86-64/sonar.sh start
+sonar tube should be up and running in http://<ip>:9000. Default username and password for sonar:admin admin
+
+To set sonar as a systems service:
+Create sonar.service and copy paste the following
+vi /etc/systemd/system/sonar.service
+
+[Unit]
+Description=SonarQube
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+
+User=sonarqube
+Group=sonarqube
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl enable sonar.service
+systemctl start sonar.service
+systemctl stop sonar.service
+
+
+TURN ON SONARQUBE
+**********************************
+Start the GCP VM
+http://<ip>:9000—>sonar will be up and running
+Login: user:admin, password:admin
+
+Every time you turn on GCP instance its IP changes so each time you need to configure the ip as follows:
+To make IP Static—>i.e ip remains same always
+Goto external ip page of GCP—>Go to the External IP addresses page
+Choose the vm—>type drop down set to static here http://35.243.241.129:9000/about
+
+If ip is ephemeral—>I.e ip changes at every time VM starts
+Copy the Sonarqube url
+Goto Jenkins vm
+Cd /opt/sonar-scanner/conf/
+vi sonar-scanner.properties
+sonar.host.url=http://<ip>:9000
+
+Also goto Jenkins dashboard—>manage Jenkins —> configure system—>Sonarqube servers—>Server URL:http://<ip>:9000
+
+SONAR INTEGRATION WITH JENKINS
+*******************************************************
+
+Sonarqube dashboard—>user—>My Account—>Security—>Generate token—>give a name ,copy paste the token id somewhere safetly
+
+Install the 'SonarQube Scanner for Jenkins' plugin from the available section in jenkins
+
+Goto Jenkins vm and instal sonar scanner/runner in it:
+cd /opt
+wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
+sudo unzip sonar-scanner-cli-3.0.3.778.zip
+sudo mv sonar-scanner-cli-3.0.3.778/ sonar-scanner/
+cd /opt/sonar-scanner/conf 
+Sudo vi sonar-scanner.properties
+Update the following settings 
+Uncomment: sonar.host.url=http://<ip>:9000
+cd ..
+* Create a new SONAR_RUNNER_HOME environment variable 
+		export SONAR_RUNNER_HOME=/sonar-runner-2.4
+		export PATH=$PATH:$SONAR_RUNNER_HOME/bin
+	Give the correct path in Manage Jenkins --> Global Tool Configuration --> SonarQube Scanner
+	
+* Manage Jenkins --> Configure System --> SonarQube Servers --> Name: mysonar
+			Server URL: http://<serverIP>:9000
+			Server Authentication Token: Obtained from Sonarqube portal
+			(login to sonarqube-->Administration-->Security-->Users-->Tokens(3 bars showing update tokens)
+			--> give token name--> generate token-->copy the token (name: token1 value : c2801f334929e61ffbbcc070e148cf72b8a50d1f
+			))--> Save
+
+* In job configuration--> post steps--> Select 'Run only if build succeeds'--> Add 'Execute SonarQube scanner'--> Under analysis properties, give 
+	sonar.projectKey=aaa
+	sonar.projectName=MyFirstProject
+	sonar.projectVersion=1.0
+	sonar.sources=src
+	sonar.sourceEncoding=UTF-8
+	sonar.java.binaries=target/classes
+	-->Save
+
+References:
+*******************
+https://thegeeksalive.com/how-to-install-sonarqube-on-centos/
+https://github.com/ValaxyTech/DevOpsDemos/blob/master/SonarQube/Sonar_Integration_with_Jenkins.MD
+also:
+https://docs.sonarqube.org/display/SONARQUBE52/Installing+and+Configuring+SonarQube+Scanner
+https://stackoverflow.com/questions/39445025/sonarqube-plugin-for-jenkins-does-not-find-sonarqube-scanner-executable?rq=1
+https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Jenkins
+https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Maven
+https://medium.com/@amitvermaa93/jenkins-sonarqube-integration-129f5c49c4ca

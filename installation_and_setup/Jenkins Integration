@@ -1,0 +1,85 @@
+Jenkins installation
+
+sudo yum install java-1.8.0-openjdk-devel
+curl --silent --location http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo | sudo tee /etc/yum.repos.d/jenkins.repo
+sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+sudo yum install jenkins
+sudo systemctl start jenkins
+systemctl status jenkins
+
+Output should be:
+● jenkins.service - LSB: Jenkins Automation Server
+Loaded: loaded (/etc/rc.d/init.d/jenkins; bad; vendor preset: disabled)
+Active: active (running) since Thu 2018-09-20 1421 UTC; 15s ago
+    Docs: man:systemd-sysv-generator(8)
+Process: 2367 ExecStart=/etc/rc.d/init.d/jenkins start (code=exited, status=0/SUCCESS)
+CGroup: /system.slice/jenkins.service
+
+sudo systemctl enable jenkins
+O/p
+jenkins.service is not a native service, redirecting to /sbin/chkconfig.
+Executing /sbin/chkconfig jenkins on
+
+Adjust firewall
+sudo firewall-cmd --permanent --zone=public --add-port=8080/tcp
+sudo firewall-cmd --reload
+
+Goto http://your_ip_or_domain:8080
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+Copy password
+Install suggested plugin
+Update username:admin psd:admin—>save and finish
+
+TO START JENKINS:
+*****************************
+Start the GCP VM
+Goto browser: http://<ip>:8080—>jerkins should be up and running if above installation is done properly
+
+Manually:
+cd /etc/rc.d/init.d/
+jenkins start
+jenkins stop
+
+Service cmds:
+sudo systemctl start jenkins
+sudo systemctl stop jenkins
+sudo systemctl status jenkins
+sudo systemctl restart jenkins
+
+INSTALL MAVEN AND GIT
+**********************************
+Sudo yum install git
+Sudo yum install wget
+wget https://www-us.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz -P /tmp
+sudo tar xf /tmp/apache-maven-3.6.0.tar.gz -C /opt
+sudo ln -s /opt/apache-maven-3.6.0 /opt/maven
+Setup envt variables
+sudo vim /etc/profile.d/maven.sh
+Paste:
+export JAVA_HOME=/usr/lib/jvm/jre-openjdk
+export M2_HOME=/opt/maven
+export MAVEN_HOME=/opt/maven
+export PATH=${M2_HOME}/bin:${PATH}
+
+sudo chmod +x /etc/profile.d/maven.sh
+source /etc/profile.d/maven.sh	
+mvn -version
+O/p
+Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T18:41:47Z)
+Maven home: /opt/maven
+Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "3.10.0-862.3.2.el7.x86_64", arch: "amd64", family: "unix"
+
+JENKINS CONFIGURATION
+************************************
+Jenkins dashboard—>Jenkins configuration—>global tools configuration
+￼JDK-->Add JDK-->unselect install automatically-->name:JAVA_HOME JAVA_HOME:/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64/
+Git-->Git Installations-->Add Git-->unselect install automatically-->name:default  path to gitexecutable:git
+Maven-->Maven installations-->add Maven-->unselect install automatically-->Name: MAVEN_HOME  MAVEN_HOME:/opt/maven
+
+￼
+￼
+
