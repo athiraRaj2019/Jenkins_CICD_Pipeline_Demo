@@ -1,0 +1,48 @@
+
+SonarQube Integration with Jenkins
+**********************************
+
+Inorder to integrate sonarqube with maven and jenkins, we should do the following:
+
+* Install the 'SonarQube Scanner for Jenkins' plugin from the available section
+
+* Install SonarQube Runner
+	wget http://repo1.maven.org/maven2/org/codehaus/sonar/runner/sonar-runner-dist/2.4/sonar-runner-dist-2.4.zip
+	unzip sonar-runner-dist-2.4.zip
+	cd /conf
+	vi sonar-runner.properties
+	Update the settings like (uncomment):
+		sonar.host.url=http://localhost:9000	
+		sonar.jdbc.url=jdbc:mysql://localhost:3306/sonar?useUnicode=true&amp;characterEncoding=utf8
+		sonar.jdbc.username=sonar
+		sonar.jdbc.password=sonar
+		sonar.sourceEncoding=UTF-8
+	cd ..
+	Create a new SONAR_RUNNER_HOME environment variable 
+		export SONAR_RUNNER_HOME=/sonar-runner-2.4
+		export PATH=$PATH:$SONAR_RUNNER_HOME/bin
+	Give the correct path in Manage Jenkins --> Global Tool Configuration --> SonarQube Scanner
+	
+* Manage Jenkins --> Configure System --> SonarQube Servers --> Name: mysonar
+			Server URL: http://<serverIP>:9000
+			Server Authentication Token: Obtained from Sonarqube portal
+			(login to sonarqube-->Administration-->Security-->Users-->Tokens(3 bars showing update tokens)
+			--> give token name--> generate token-->copy the token (name: sonartoken
+			value: 77911dbba213f6d4e35413ec4da6cf1935a02ef1))--> Save
+
+* In job configuration--> post steps--> Select 'Run only if build succeeds'--> Add 'Execute SonarQube scanner'--> Under analysis properties, give 
+	sonar.projectKey=aaa
+	sonar.projectName=MyFirstProject
+	sonar.projectVersion=1.0
+	sonar.sources=src
+	sonar.sourceEncoding=UTF-8
+	sonar.java.binaries=target/classes
+	-->Save
+	
+	
+References:
+	https://docs.sonarqube.org/display/SONARQUBE52/Installing+and+Configuring+SonarQube+Scanner
+	https://stackoverflow.com/questions/39445025/sonarqube-plugin-for-jenkins-does-not-find-sonarqube-scanner-executable?rq=1
+	https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Jenkins
+	https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Maven
+	https://medium.com/@amitvermaa93/jenkins-sonarqube-integration-129f5c49c4ca

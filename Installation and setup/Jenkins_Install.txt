@@ -1,0 +1,27 @@
+
+Installing Jenkins
+
+sudo yum install java-1.8.0-openjdk-devel
+curl --silent --location http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo | sudo tee /etc/yum.repos.d/jenkins.repo
+sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+sudo yum install jenkins
+sudo systemctl start jenkins
+systemctl status jenkins
+sudo systemctl enable jenkins
+sudo firewall-cmd --permanent --zone=public --add-port=8080/tcp
+sudo firewall-cmd --reload
+
+To set 8080 port open in GCP,
+	Goto firewall rules for VPC network
+	Create a firewall rule (Clicking on this)
+	Give the name (jenkins), target tags (jenkins), source IP ranges (0.0.0.0/0), Protocols&ports: specified protocol (tcp), port (8080)
+	Now edit the instance and add the jenkins rule to it
+
+Jenkins link: http://your_ip_or_domain:8080 (http://34.74.103.5:8080/)
+
+
+
+
+JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk
+MAVEN_HOME: /usr/share/maven
+SONAR_RUNNER_HOME: /sonar-runner-2.4

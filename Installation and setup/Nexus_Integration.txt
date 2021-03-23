@@ -1,0 +1,23 @@
+
+Nexus Integration
+*****************
+
+Username: admin
+Password: admin123
+
+* Create a new repository:
+	- Click on Settings/Gear icon. 
+	- Go to Repositories.
+	- Click on Create Repository
+	- Choose “maven2 (hosted)” from the list
+	- Enter the desired name (POC-repo)
+	- Choose Version Policy as “Mixed”, Layout policy as “Permissive” and Deployment policy as “Allow Redeploy”. 
+	  (These properties allow us to create a custom hierarchical directory structure to store artifacts in our repository.)
+	- Click on Create repository. (The repository URL: http://35.200.146.29:8081/repository/POC-repo/)
+
+https://support.sonatype.com/hc/en-us/articles/115006744008-How-can-I-programmatically-upload-files-into-Nexus-3-
+https://stackoverflow.com/questions/41497385/how-to-make-a-curl-request-with-json-in-jenkins-pipeline-groovy-script
+	
+* Configuration in Jenkins:
+	- Install plugin: Nexus Platform Plugin
+	- Manage Jenkins --> Configure System --> Sonatype Nexus --> Display name (mynexus), Server ID (mynexus), Server URL (http://localhost:8081), Credentials

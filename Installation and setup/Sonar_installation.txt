@@ -1,0 +1,80 @@
+
+SonarQube Installation
+**********************
+
+* sudo yum install wget -y
+* wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+* sudo rpm -ivh mysql-community-release-el7-5.noarch.rpm
+* sudo yum update -y
+* sudo yum install mysql-server
+* sudo systemctl start mysqld
+* sudo mysql_secure_installation
+* mysql -u root -p
+  SHOW GLOBAL VARIABLES LIKE 'storage_engine'
+  CREATE USER 'sonarqube'@'localhost' IDENTIFIED BY 'password';
+  CREATE DATABASE sonarqube;
+  GRANT ALL PRIVILEGES ON sonarqube.* TO 'sonarqube'@'localhost';
+  
+  Open /etc/my.cnf file --> query_cache_size = 15M
+  
+* cd /opt 
+* wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-6.4.zip
+* unzip sonarqube-6.4.zip
+* mv sonarqube-6.4 sonarqube
+
+* open “/opt/sonarqube/conf/sonar.properties” --> 	sonar.jdbc.username=sonarqube
+													sonar.jdbc.password=sonar
+													sonar.jdbc.url=jdbc:mysql://localhost:3306/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance&useSSL=false
+
+* To start sonarqube,
+	cd /opt/sonarqube/bin/linux-x86-64
+	sudo ./sonar.sh start
+	sudo ./sonar.sh status
+
+* To start sonarqube as a service,
+	 Create a file /etc/init.d/sonar and copy the following content on to the file.
+		#!/bin/sh
+		#
+		# rc file for SonarQube
+		#
+		# chkconfig: 345 96 10
+		# description: SonarQube system (www.sonarsource.org)
+		#
+		### BEGIN INIT INFO
+		# Provides: sonar
+		# Required-Start: $network
+		# Required-Stop: $network
+		# Default-Start: 3 4 5
+		# Default-Stop: 0 1 2 6
+		# Short-Description: SonarQube system (www.sonarsource.org)
+		# Description: SonarQube system (www.sonarsource.org)
+		### END INIT INFO
+ 
+		/usr/bin/sonar $*
+
+	sudo ln -s /opt/sonarqube/bin/linux-x86-64/sonar.sh /usr/bin/sonar
+	sudo chkconfig --add sonar
+	sudo service sonar start
+	
+	
+Now check in http://<server IP>:9000-->SonarQube home page
+	
+References: https://devopscube.com/setup-and-configure-sonarqube-on-linux/
+			https://techrideradmin.blogspot.com/2019/01/how-to-install-and-configure-sonarqube-on-centos-7-step-by-step-guide.html
+			
+			
+
+			
+
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 sudo SONAR_RUNNER_HOME=/sonar-runner-2.4
+			 sudo 
