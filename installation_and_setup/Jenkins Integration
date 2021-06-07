@@ -76,10 +76,11 @@ OS name: "linux", version: "3.10.0-862.3.2.el7.x86_64", arch: "amd64", family: "
 JENKINS CONFIGURATION
 ************************************
 Jenkins dashboard—>Jenkins configuration—>global tools configuration
-￼JDK-->Add JDK-->unselect install automatically-->name:JAVA_HOME JAVA_HOME:/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64/
+JDK-->Add JDK-->unselect install automatically-->name:JAVA_HOME JAVA_HOME:/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64/
 Git-->Git Installations-->Add Git-->unselect install automatically-->name:default  path to gitexecutable:git
 Maven-->Maven installations-->add Maven-->unselect install automatically-->Name: MAVEN_HOME  MAVEN_HOME:/opt/maven
 
-￼
-￼
+JENKINS VERSION UPDATE
+****************************************
+https://www.thegeekstuff.com/2016/06/upgrade-jenkins-and-plugins/
 
